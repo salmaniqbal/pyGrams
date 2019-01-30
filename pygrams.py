@@ -18,6 +18,7 @@ from scripts.visualization.graphs.terms_graph import TermsGraph
 from scripts.visualization.wordclouds.multicloudplot import MultiCloudPlot
 
 #-fc="Communications,Leadership, IT systems"
+#first commit
 
 
 def year2pandas_latest_date(year_in):
