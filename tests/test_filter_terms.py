@@ -11,17 +11,21 @@ from scripts.tfidf_wrapper import TFIDF
 # feel free to write some more tests
 
 
-@unittest.skip("works with custom small embeddings file, big enough to not be able to upload")
+
 class TestDocumentsFilter(unittest.TestCase):
 
     def setUp(self):
 
-        df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
+        df = pd.read_pickle(FilePaths.us_patents_random_10000_pickle_name)
         self.__tfidf_obj = TFIDF(docs_df=df, ngram_range=(1, 3), max_document_frequency=0.1,
                           tokenizer=LemmaTokenizer(), text_header='abstract')
         #change this to the model name!
         self.__model_name='blah'
 
+    def test_autostop(self):
+        termf_filter = FilterTerms(self.__tfidf_obj, None, use_autostop=True)
+
+    @unittest.skip("works with custom small embeddings file, big enough to not be able to upload")
     def test_embeddings_filter_binary(self):
         user_queries='pharmacy, health, chemist'
         termf_filter = FilterTerms(self.__tfidf_obj, user_queries)
@@ -30,6 +34,7 @@ class TestDocumentsFilter(unittest.TestCase):
         self.assertTrue(weights_vec[0:19] == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "assertion fails")
         # assert what you like here. ie. first 20 or last 20 values, count of 1s or zeros, etc
 
+    @unittest.skip("works with custom small embeddings file, big enough to not be able to upload")
     def test_embeddings_filter_cosine_dist(self):
         user_queries = 'pharmacy,  health, chemist'
         termf_filter = FilterTerms(self.__tfidf_obj, user_queries)
