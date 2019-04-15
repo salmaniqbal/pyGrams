@@ -20,7 +20,20 @@ class TFIDF:
         )
 
         self.__ngram_counts = self.__vectorizer.fit_transform(text_series)
-        self.__feature_names = self.__vectorizer.get_feature_names()
+
+        self.__feature_names = []
+        self.__feature_PoS = []
+        feature_names_with_PoS = self.__vectorizer.get_feature_names()
+        for feature_name_with_PoS in feature_names_with_PoS:
+            feature_name = ''
+            part_of_speech = ''
+            words_with_PoS = feature_name_with_PoS.split(' ')
+            for word_with_PoS in words_with_PoS:
+                word_with_PoS_split = word_with_PoS.split('_')
+                feature_name += word_with_PoS_split[0] + ' '
+                part_of_speech += word_with_PoS_split[1] + ' '
+            self.__feature_names.append(feature_name.strip())
+            self.__feature_PoS.append(part_of_speech.strip())
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)

@@ -31,7 +31,6 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
-import scripts.utils.utils as ut
 import string
 
 from nltk import word_tokenize, PorterStemmer, pos_tag
@@ -39,6 +38,7 @@ from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import strip_accents_ascii
 
+import scripts.utils.utils as ut
 from scripts import FilePaths
 
 
@@ -48,15 +48,17 @@ class LemmaTokenizer(object):
 
     def lemmatize_with_pos(self, tag):
         if tag[1].startswith('N'):
-            return self.wnl.lemmatize(tag[0], wordnet.NOUN)
+            word = self.wnl.lemmatize(tag[0], wordnet.NOUN)
         elif tag[1].startswith('J'):
-            return self.wnl.lemmatize(tag[0], wordnet.ADJ)
+            word = self.wnl.lemmatize(tag[0], wordnet.ADJ)
         elif tag[1].startswith('R'):
-            return self.wnl.lemmatize(tag[0], wordnet.ADV)
+            word = self.wnl.lemmatize(tag[0], wordnet.ADV)
         elif tag[1].startswith('V'):
-            return self.wnl.lemmatize(tag[0], wordnet.VERB)
+            word = self.wnl.lemmatize(tag[0], wordnet.VERB)
         else:
-            return self.wnl.lemmatize(tag[0])
+            word = self.wnl.lemmatize(tag[0])
+
+        return f'{word}_{tag[1]}'
 
     def __call__(self, doc):
         text = word_tokenize(doc)
@@ -69,7 +71,7 @@ class StemTokenizer(object):
         self.ps = PorterStemmer()
 
     def __call__(self, doc):
-        return [self.ps.stem(t) for t in word_tokenize(doc)]
+        return [f'{self.ps.stem(t)}_?' for t in word_tokenize(doc)]
 
 
 def lowercase_strip_accents_and_ownership(doc):
