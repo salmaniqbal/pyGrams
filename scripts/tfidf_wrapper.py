@@ -24,6 +24,7 @@ class TFIDF:
 
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__ngram_counts)
+        self.__tf_matrix = self.__get_tf_matrix()
 
     @property
     def idf(self):
@@ -40,3 +41,26 @@ class TFIDF:
     @property
     def feature_names(self):
         return self.__feature_names
+
+    @property
+    def tf_matrix(self):
+        return self.__tf_matrix
+
+    @property
+    def ngram_counts(self):
+        return self.__ngram_counts
+
+    def __get_tf_matrix(self):
+        # we are doing this instead of calculating tfs, as the term dicts did not correspond
+        # needs investigating at some point
+        tf_matrix = self.__tfidf_matrix.copy()
+        for i in range(self.__tfidf_matrix.shape[0]):
+            start_idx_ptr = self.__tfidf_matrix.indptr[i]
+            end_idx_ptr = self.__tfidf_matrix.indptr[i + 1]
+
+            # iterate through columns with non-zero entries
+            for j in range(start_idx_ptr, end_idx_ptr):
+                col_idx = self.__tfidf_matrix.indices[j]
+                tf_matrix.data[j] = self.__tfidf_matrix.data[j] / self.__tfidf_transformer.idf_[col_idx]
+        return tf_matrix
+

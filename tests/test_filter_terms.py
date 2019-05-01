@@ -11,9 +11,9 @@ class TestTermsFilter(unittest.TestCase):
 
     def setUp(self):
         df = pd.read_pickle(FilePaths.us_patents_random_100_pickle_name)
-        tfidf_obj = TFIDF(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
+        self.__tfidf_obj = TFIDF(df['abstract'], ngram_range=(1, 3), max_document_frequency=0.1,
                           tokenizer=LemmaTokenizer())
-        self.feature_names = tfidf_obj.feature_names
+        self.feature_names = self.__tfidf_obj.feature_names
 
     def test_embeddings_filter_binary(self):
         user_queries = ['pharmacy', 'health', 'chemist']
@@ -67,6 +67,9 @@ class TestTermsFilter(unittest.TestCase):
                                 0.47456806019549364]
 
         assert_list_almost_equal(self, weights_vec_expected, weights_vec_actual)
+
+    def test_autostop(self):
+        termf_filter = FilterTerms(self.__tfidf_obj, None, use_autostop=True)
 
 
 if __name__ == '__main__':
