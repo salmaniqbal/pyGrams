@@ -46,21 +46,10 @@ To enable the most generic support possible at minimum overhead, we decided to s
 
 ## Patent Data
 
-Initially, we did not have access to [PatStat](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1)
-(the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable
-us to use large numbers of patent abstract as soon as possible, we imported the USPTO's
-[bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was
-stored in a similar XML format). The XML data was scraped from the web using
-[beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame
-format for ingestion into pygrams.
+Initially, we did not have access to [PatStat](https://www.epo.org/searching-for-patents/business/patstat.html#tab-1) (the world-wide patent archive), but were given access to samples from the UK's patent data in XML format. To enable us to use large numbers of patent abstract as soon as possible, we imported the USPTO's [bulk patent](https://bulkdata.uspto.gov/) dataset, using data from 2004 onwards (as this was stored in a similar XML format). The XML data was scraped from the web using [beautifulsoup](https://www.crummy.com/software/BeautifulSoup/) and exported in data frame format for ingestion into pygrams.
 
-Later, when patstat became available, we created an import tool which parsed the CSV format
-data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate
-database.
+Later, when patstat became available, we created an import tool which parsed the CSV format data supplied by patstat and directly exported in dataframe format, to avoid the need for an intermediate database.
 
-# Data sources 1-2
-
-Suggest this is folded into s/w engineering section.
 
 # Objective 1: Popular Terminology 7 ETF
 
@@ -116,24 +105,9 @@ bi-grams 'internal combustion' and 'combustion engine' as well as its unigrams '
 will receive counts too. So as a post-processing step, we deduct the higher-gram counts from the lower ones in order to
 have a less biased output of phrases as a result.
 ## Reducing the tfidf matrix size
-The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the
-columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and
-was one of the major challenges for this project. In order to allow for faster processing and greater versatility in
-terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas.
-We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical
-format.
-The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user
-configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to
-reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we
-could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data
-element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces
-the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back.
-This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on
-our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been
-used to produce all the results in this report. We also append the command line arguments used to generate our outputs
-so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a
-macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and
-a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
+The TFIDF sparse matrix grows exponentially when bi-grams and tri-grams are included. The dictionary of phrases on the columns of the matrix can quickly grow into tens of millions. This has major storage and performance implications and was one of the major challenges for this project. In order to allow for faster processing and greater versatility in terms of computer specifications needed to run the pygrams pipeline we came up with some optimization ideas. We decided to discard non-significant features from the matrix and cache it along with the document dates in numerical format.
+
+The matrix optimization is performed by choosing the top n phrases (uni-bi-tri-grams) where n is user configurable and defaults to 100,000. The top n phrases are ranked by their sum of tfidf over all documents. In order to reduce the final object size, we decided to store the term-count matrix instead of the tf-idf as this would mean that we could use uint8 ie. 1 byte instead of the tf-idf data, which defaults to float64 and is 8 bytes per non-zero data element. When the cached object is read back, it only takes linear time to calculate and apply the weights This reduces the size of the cached serialized object by a large factor, which means that it can be de-serialized faster when read back. This way we managed to store 3.2M  US patent data documents in just 56.5 Mb with bz2 compression. This file is stored on our github page in https://github.com/datasciencecampus/pyGrams/tree/develop/outputs/tfidf/USPTO-mdf-0.05 and has been used to produce all the results in this report. We also append the command line arguments used to generate our outputs so that readers can reproduce them if they wish. The time it takes to cache the object is six and a half hours on a macbook pro with 16GB of RAM and i7 cores. Subsequent queries run in the order of one minute for popular terminology and a few minutes ( 7-8 mins) for timeseries outputs without forecasting.
 
 ## Filtering 2
 ### Document filtering 0.5-1 B
@@ -294,19 +268,14 @@ and further below:
 
 
 
-To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on
-[Github](https://github.com/datasciencecampus/pyGrams#term-filters)
+To find out how to run term filtering in PyGrams please see the 'Term Filter' section in the PyGrams README found on [Github](https://github.com/datasciencecampus/pyGrams#term-filters).
 
 ## Alternative models
 Our pipeline can run with other embedding models too, like fasttext 300d or word2vec 200d. We decided to default to this model as it is lightweight and meets github's storage requirements. For patents it performed similar to other usually better performing models like fasttext. However on a different text corpus that may not be the case, so the user should feel free to experiment with other models too. Our pipeline is compatible with all word2vec format models and they can easily be deployed.
 
 # Objective 2: Emerging Terminology 4
 ## From tfidf to the timeseries matrix
-In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the
-tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the
-period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of
-seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve
-emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
+In order to assess emergence, our dataset needs to be converted into a time-series. Our approach was to reduce the tfidf matrix into a timeseries matrix where each term is receiving a document count over a period. For example, if the period we set is a month and term 'fuel cell' had a non-zero tfidf for seventeen documents it would get a count of seventeen for this month. Once we obtain the timeseries matrix, we benchmarked three different methods to retrieve emerging terminology. These were Porter(2018), curve fitting and a state-space model with kalman filter.
 
 
 ## Escores 2 IT
@@ -406,21 +375,15 @@ A more flexible approach is that of the state space model with a kalman filter. 
 At first we decided to generate escores from this approach using the sum of the slopes between two periods divided by the standard deviation. We found that this works well as it would account for the variety in values we have on the y axis ( document counts ). Another option could be standardizing the timeseries values between 0 and 1. The disantvantage of this method over the previous two is the fact that it is slower as the kalman filter needs parameter optimization.
 
 (table with state-space e-scores here and a few plots)
-### which method is best?
+### Which method is best?
 It all depends on what outcome is desirable. If we are after a fast output elastically weighted towards the three last periods, considering also the global trend then Porter is best. If we are after a relatively fast output looking at emergence patterns anywhere in the timeseries, then quadratic fitting ( or sigmoid , depending on the pattern we are after) is the best solution. If accuracy and flexibility on the emergence period range is desired, then the state-space model with the Kalman filter is the best option. Pygrams offers all the above options.
 
 ## Prediction 2 IB
 
-The popular terms are processed using either Porter or quadratic fitting to separate terms into
-emerging (usage is increasing over time), stationary (usage is static) or declining (usage is
-reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
+The popular terms are processed using either Porter or quadratic fitting to separate terms into emerging (usage is increasing over time), stationary (usage is static) or declining (usage is reduced over time). Note that we use the last 10 years with Porter's approach to label a term.
 
-Given the labels, we take the top 25 emergent, top 25 stationary and top 25 declining terms
-and run usage predictions on these terms.
-The top emergent terms are defined as those with the most positive emergence score, the top stationary terms
-those with a score around 0, and top declining those with the most negative score.
-
-Different prediction techniques were implemented and tested, to determine the most suitable approach to predict future trends.
+Given the labels, we take the top 25 emergent, top 25 stationary and top 25 declining terms and run usage predictions on these terms.
+The top emergent terms are defined as those with the most positive emergence score, the top stationary terms those with a score around 0, and top declining those with the most negative score. Different prediction techniques were implemented and tested, to determine the most suitable approach to predict future trends.
 These techniques are now covered in the following sub-sections.
 
 ### Naive, linear, quadratic, cubic
@@ -464,17 +427,16 @@ results are output as an HTML report. For example, using the supplied USPTO data
 
 An extract of the output is shown below:
 
-|--|--|--|--|--|--|--|--|--|--|--|--|--|
+
 | terms | Naive	|Linear	|Quadratic	|Cubic	|ARIMA	|Holt Winters	|LSTM |LSTM |LSTM |LSTM|LSTM |LSTM |
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
 | | | | | | | | **multiLA** | **multiLA** | **1LA** | **1LA** | **multiM 1LA** | **multiM 1LA** |
 | | | | | | | | **stateful** | **stateless** | **stateful** | **stateless** | **stateful** | **stateless** |
-| Trimmed (10% cut) | 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2%
-| mean of Relative RMSE | | | | | | | | | | | | |
-| Standard deviation | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
-| of Relative RMSE | | | | | | | | | | | | |
+| Trimmed (10% cut) mean of Relative RMSE| 9.6% | 17.2% | 22.4% | 14.3% | 10.3% | 9.9% | 13.6% | 17.9% | 10.8% | 11.9% | 11.6% | 13.2%
+| Standard deviation of Relative RMSE | 2.8% | 5.3% | 8.5% |8.5% |3.1% |3.0% |9.0% |15.2% |2.3% |5.1% |3.8% |22.5% |
 
-The RMSE results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
+
+The Root Mean Squared Error (RMSE) results are reported in summary form as above for relative RMSE, absolute error and average RMSE (the different metrics are reported to assist the user with realising that some errors may be relatively large but if they are based on very low frequencies, they are less of a concern - absolute error will show this; similarly a low relative error may actually be a large absolute error with high frequency counts, so we inform the user of both so they can investigate). The summary tables are then followed with the breakdown of results against each tested term (by default, 25 terms are tested in each of emergent, stationary and declining).
 
 ![img](img/prediction_emerging_test.png)
 
