@@ -262,7 +262,7 @@ class PipelineEmtech(object):
             file.write('\n')
         # construct a terms list for n emergent n stationary? n declining
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, skip_emergence=True):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
@@ -279,12 +279,17 @@ class PipelineEmtech(object):
 
         html_results = ''
 
+        if skip_emergence:
+            predictors_to_run = []
         results, training_values, test_values = evaluate_prediction(self.__term_counts_per_week, self.__term_ngrams,
                                                                     predictors_to_run, self.__weekly_iso_dates,
                                                                     test_terms=terms, test_forecasts=train_test,
                                                                     normalised=normalized,
                                                                     number_of_patents_per_week=self.__number_of_patents_per_week,
                                                                     num_prediction_periods=self.__M)
+
+        if skip_emergence:
+            return '', training_values.items()
 
         predicted_emergence = map_prediction_to_emergence_label(results, training_values, test_values,
                                                                 predictors_to_run, test_terms=terms)
