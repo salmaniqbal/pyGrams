@@ -5,6 +5,8 @@ import numpy as np
 from pandas import Timestamp
 from scipy.sparse import csr_matrix, vstack, isspmatrix_csr
 from tqdm import tqdm
+import pickle
+import os
 
 
 def choose_last_day(year_in, month_in):
@@ -33,7 +35,15 @@ def year2pandas_earliest_date(year_in, month_in):
     return Timestamp(year_string)
 
 
-def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
+def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates, read_from_file=True):
+    filename = os.path.join('outputs', 'weekly_data', 'weekly_data.pickle')
+    # read from file
+    if read_from_file:
+        with open(filename, 'rb') as f:
+            week_counts_csr, week_totals, week_dates = pickle.load(f)
+        return week_counts_csr, week_totals, week_dates
+
+
     number_of_rows, number_of_terms = term_value_array.shape
     week_counts_csr = None
 
@@ -71,6 +81,11 @@ def tfidf_with_dates_to_weekly_term_counts(term_value_array, uspto_week_dates):
                              format='csr') if week_counts_csr is not None else current_week_counts_csr
     week_totals.append(week_total)
     week_dates.append(current_week)
+
+    # save to file
+    with open(filename, 'wb') as f:
+        data = [week_counts_csr, week_totals, week_dates]
+        pickle.dump(data, f)
 
     return week_counts_csr, week_totals, week_dates
 
