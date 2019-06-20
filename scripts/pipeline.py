@@ -262,7 +262,7 @@ class PipelineEmtech(object):
             file.write('\n')
         # construct a terms list for n emergent n stationary? n declining
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, skip_emergence=True):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, skip_emergence=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
