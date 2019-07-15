@@ -925,7 +925,16 @@ plasma display panel: -14.599067980826895
 <p>Terms which co-occur in documents are revealed by this visualisation; terms are shown as nodes in a graph, with links between nodes if the related terms appear in the same document.<br>
 The size of the node is proportional to the popularity score of the term, and the width of the link is proportional to the number of times a term co-occurs.<br>
 An example visualisation of the USPTO dataset can be generated with <code>python pygrams.py -it USPTO-mdf-0.05 -o=graph</code>, an example output is shown below.</p>
-<p><img src="img/fdg.png" alt="img"></p>
+<p>
+    <span class="fdg"><link rel="stylesheet" type="text/css" href="../outputs/fdg/fdg_style.css">
+        <svg width=1200 height=1200 style="border:solid 1px"></svg>
+        <script src="../outputs/fdg/d3.v4.min.js"></script>
+        <script src="../outputs/fdg/knockout-3.5.0.js"></script>
+        <script src="../outputs/fdg/key-terms.js"></script>
+        <script src="../outputs/fdg/f.js"></script>
+    </span>
+
+</p>
 <h3 class="mume-header" id="graph-summary">Graph summary</h3>
 
 <p>The graph of co-occurring terms is also output on a text report when an FDG is generated; it is of the form:</p>
