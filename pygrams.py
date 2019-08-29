@@ -118,8 +118,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-ts", "--timeseries", default=False, action="store_true",
                         help="denote whether timeseries analysis should take place")
 
-    parser.add_argument("-sm", "--smooth", default=False, action="store_true",
-                        help="denote whether smooth the timeseries using a Kalman Filter")
+    parser.add_argument("-sm", "--smooth", type=int, choices=[0, 1, 2, 3], default=0,
+                        help="denote whether smooth the timeseries using a Kalman Filter (1; avoid), "
+                             "Savitzky-Golay (fastest) (2) or Lowess (3) filter. ")
 
     parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
                         help=(", ".join([f"{index}. {value}" for index, value in enumerate(predictor_names)]))

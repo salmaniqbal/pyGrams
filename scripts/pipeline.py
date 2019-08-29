@@ -6,6 +6,9 @@ from pandas import read_pickle, to_datetime
 from pandas.api.types import is_string_dtype
 from tqdm import tqdm
 import numpy as np
+from scipy.signal import savgol_filter
+from scipy.sparse import hstack, csr_matrix
+from statsmodels.nonparametric.smoothers_lowess import lowess
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
@@ -173,21 +176,54 @@ class Pipeline(object):
 
         self.__M = m_steps_ahead
 
-        if smooth_timeseries:
+        term_counts_per_week = self.__term_counts_per_week
 
+        if smooth_timeseries == 0:
+            term_counts_per_week_csc = term_counts_per_week.tocsc()
+
+        elif smooth_timeseries == 1:
             sigma_gnu = [0.01, 0.1, 0.5, 1]
             sigma_eta = [0.01, 0.1, 0.5, 1]
             delta = [0.5, 0.7, 0.9, 1]
 
-            term_counts_per_week = self.__term_counts_per_week
             for column in term_counts_per_week.T:
-                timeseries_data = column.toarray()
-                timeseries_data = np.array([item for sublist in timeseries_data for item in sublist])
-                smoothing = SteadyStateModel(timeseries_data)
+                term_timeseries = np.array([item for sublist in column.toarray() for item in sublist])
+                smoothing = SteadyStateModel(term_timeseries)
                 opt_param, dfk_out, alphahat, mse_alphahat = smoothing.run_smoothing(sigma_gnu,sigma_eta,delta)
                 # This is where I got to, and it takes ages to complete the above code
 
-        term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
+
+        else:
+
+            def round_up_to_odd(f):
+                f = int(np.ceil(f))
+                return f + 1 if f % 2 == 0 else f
+
+            num = 0
+            for column in tqdm(term_counts_per_week.T, desc='Smoothing term', unit=' term',
+                               leave=False, unit_scale=True):
+                num = num + 1
+                term_timeseries = np.array([item for sublist in column.toarray() for item in sublist])
+
+                window_size = round_up_to_odd(len(term_timeseries) / 2)
+                polyn = 2
+
+                if smooth_timeseries == 2:
+                    term_timeseries_smoothed = savgol_filter(term_timeseries, window_size, polyn).astype(int).T
+                elif smooth_timeseries == 3:
+                    term_timeseries_smoothed = lowess(term_timeseries, range(0,len(term_timeseries)),
+                                                      window_size/len(term_timeseries), it=0).astype(int).T
+                    term_timeseries_smoothed = term_timeseries_smoothed[:,1]
+
+                if num == 1:
+                    term_counts_per_week_smoothed = csr_matrix(term_timeseries_smoothed)
+                    term_counts_per_week_smoothed = term_counts_per_week_smoothed.T
+                else:
+                    term_counts_per_week_smoothed_tmp = csr_matrix(term_timeseries_smoothed)
+                    term_counts_per_week_smoothed_tmp = term_counts_per_week_smoothed_tmp.T
+                    term_counts_per_week_smoothed = hstack((term_counts_per_week_smoothed,term_counts_per_week_smoothed_tmp))
+
+            # term_counts_per_week_csc = term_counts_per_week_smoothed.tocsc()
 
         em = Emergence(self.__number_of_patents_per_week)
         for term_index in tqdm(range(self.__term_counts_per_week.shape[1]), unit='term', desc='Calculating eScore',
