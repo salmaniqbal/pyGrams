@@ -5,6 +5,7 @@ from os import makedirs, path
 from pandas import read_pickle, to_datetime
 from pandas.api.types import is_string_dtype
 from tqdm import tqdm
+import numpy as np
 
 import scripts.data_factory as data_factory
 import scripts.output_factory as output_factory
@@ -20,13 +21,13 @@ from scripts.utils import utils
 from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, report_predicted_emergence_labels_html
 from scripts.vandv.graphs import report_prediction_as_graphs_html
 from scripts.vandv.predictor import evaluate_prediction
-
+from scripts.algorithms.code.ssm import SteadyStateModel
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
                  pickled_tfidf_folder_name=None, max_df=0.1, user_ngrams=None, prefilter_terms=0,
-                 terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
-                 curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
+                 terms_threshold=None, output_name=None, calculate_timeseries=None, smooth_timeseries=False,
+                 m_steps_ahead=5, curves=True, exponential=False, nterms=50, minimum_patents_per_quarter=20,
                  ):
 
         # load data
@@ -171,6 +172,20 @@ class Pipeline(object):
          self.__weekly_iso_dates] = self.__timeseries_data
 
         self.__M = m_steps_ahead
+
+        if smooth_timeseries:
+
+            sigma_gnu = [0.01, 0.1, 0.5, 1]
+            sigma_eta = [0.01, 0.1, 0.5, 1]
+            delta = [0.5, 0.7, 0.9, 1]
+
+            term_counts_per_week = self.__term_counts_per_week
+            for column in term_counts_per_week.T:
+                timeseries_data = column.toarray()
+                timeseries_data = np.array([item for sublist in timeseries_data for item in sublist])
+                smoothing = SteadyStateModel(timeseries_data)
+                opt_param, dfk_out, alphahat, mse_alphahat = smoothing.run_smoothing(sigma_gnu,sigma_eta,delta)
+                # This is where I got to, and it takes ages to complete the above code
 
         term_counts_per_week_csc = self.__term_counts_per_week.tocsc()
 

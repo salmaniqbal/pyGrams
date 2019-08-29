@@ -222,3 +222,16 @@ class SteadyStateModel:
         alphahat, mse_alphahat = self.smfilt(dfk_out)
 
         return opt_param, dfk_out, alphahat, mse_alphahat
+
+# if __name__ == '__main__':
+#     sigma_gnu = [0.01, 0.1, 0.5, 1]
+#     sigma_eta = [0.01, 0.1, 0.5, 1]
+#     delta = [0.5, 0.7, 0.9]
+#     timeseries = np.array([323, 340, 296, 217, 265, 337, 326, 284, 276, 294, 252, 253,
+#                            264, 190, 262, 256, 264, 232, 211, 222, 235, 219, 273, 292,
+#                            330, 268, 260, 263, 277, 309, 282, 316, 348, 314, 314, 317,
+#                            350, 368, 375, 321, 413, 395, 368, 330, 407, 316, 349, 377,
+#                            320, 334, 340, 317])
+#     smoothing = SteadyStateModel(timeseries)
+#     result = smoothing.run_smoothing(sigma_gnu,sigma_eta,delta)
+#     smoothed_timeseries = np.array(result[2][0,:].tolist())

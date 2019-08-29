@@ -118,6 +118,9 @@ def get_args(command_line_arguments):
     parser.add_argument("-ts", "--timeseries", default=False, action="store_true",
                         help="denote whether timeseries analysis should take place")
 
+    parser.add_argument("-sm", "--smooth", default=False, action="store_true",
+                        help="denote whether smooth the timeseries using a Kalman Filter")
+
     parser.add_argument("-pns", "--predictor_names", type=int, nargs='+', default=[2],
                         help=(", ".join([f"{index}. {value}" for index, value in enumerate(predictor_names)]))
                              + "; multiple inputs are allowed.\n")
@@ -178,8 +181,9 @@ def main(supplied_args):
                         pickled_tfidf_folder_name=pickled_tfidf_folder_name,
                         max_df=args.max_document_frequency, user_ngrams=args.search_terms,
                         prefilter_terms=args.prefilter_terms, terms_threshold=args.search_terms_threshold,
-                        output_name=args.outputs_name, calculate_timeseries=args.timeseries, m_steps_ahead=args.steps_ahead,
-                        curves=args.curve_fitting, exponential=args.exponential_fitting, nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
+                        output_name=args.outputs_name, calculate_timeseries=args.timeseries, smooth_timeseries=args.smooth,
+                        m_steps_ahead=args.steps_ahead, curves=args.curve_fitting, exponential=args.exponential_fitting,
+                        nterms=args.nterms, minimum_patents_per_quarter=args.minimum_per_quarter,
                         )
 
     pipeline.output(outputs, wordcloud_title=args.wordcloud_title, outname=args.outputs_name,
