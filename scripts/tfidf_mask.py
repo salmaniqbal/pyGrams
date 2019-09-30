@@ -1,8 +1,10 @@
 import numpy as np
+import scripts.utils.utils as ut
 
 
 class TfidfMask(object):
     def __init__(self, tfidf_obj, ngram_range=(2, 3), uni_factor=0.8, unbias=False):
+        self.__tfidf_obj = tfidf_obj
         self.__tfidf_matrix = tfidf_obj.tfidf_matrix
         self.__feature_names = tfidf_obj.feature_names
         self.__tfidf_mask = self.__tfidf_matrix.copy()
@@ -11,13 +13,15 @@ class TfidfMask(object):
         self.__uni_factor = uni_factor
         self.__idf = tfidf_obj.idf
 
+        ut.tfidf_plot( self.__tfidf_obj, "original matrix")
         if unbias:
             # do unigrams
             if ngram_range[0] == 1:
                 self.__clean_unigrams(self.__max_bigram())
-
+            ut.tfidf_plot( self.__tfidf_obj, "unigrams cleaned")
             for i in range(ngram_range[0], ngram_range[1]):
                 self.__unbias_ngrams(i + 1)
+                ut.tfidf_plot( self.__tfidf_obj, "unbias " + str(i))
 
     @property
     def tfidf_mask(self):
@@ -53,6 +57,7 @@ class TfidfMask(object):
                 if len(ngram_terms) == 1:
                     if self.__tfidf_matrix.data[j] < self.__uni_factor * max_bi_freq:
                         self.__tfidf_mask.data[j] = 0.0
+                        self.__tfidf_obj.count_matrix.data[j]=0
         return 0
 
     def __max_bigram(self):
@@ -106,3 +111,4 @@ class TfidfMask(object):
             if abs(small_term_counts - big_ngram_counts) > 0.000001:
                 ratio = (small_term_counts - big_ngram_counts) / small_term_counts
             self.__tfidf_mask.data[start_idx_ptr + idx] *= ratio
+            self.__tfidf_obj.count_matrix.data[start_idx_ptr + idx] *= ratio

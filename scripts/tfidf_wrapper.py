@@ -52,6 +52,7 @@ class _TFIDF:
     def __trigger_transformer(self):
         self.__tfidf_transformer = TfidfTransformer(smooth_idf=False, norm=None)
         self.__tfidf_matrix = self.__tfidf_transformer.fit_transform(self.__count_matrix)
+
         if self.__l2_norm is None:
             self.__l2_norm = utils.l2normvec(self.__tfidf_matrix)
         self.__tfidf_matrix = utils.apply_l2normvec(self.__tfidf_matrix, self.__l2_norm)

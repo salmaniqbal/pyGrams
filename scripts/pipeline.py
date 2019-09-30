@@ -62,6 +62,7 @@ class Pipeline(object):
 
                 number_of_ngrams_before = len(self.__tfidf_obj.feature_names)
                 self.__tfidf_obj = tfidf_subset_from_features(self.__tfidf_obj, feature_subset)
+                scripts.utils.utils.tfidf_plot(self.__tfidf_obj, 'n terms subset')
                 number_of_ngrams_after = len(self.__tfidf_obj.feature_names)
                 print(f'Reduced number of terms by pre-filtering from {number_of_ngrams_before:,} '
                       f'to {number_of_ngrams_after:,}')
@@ -534,7 +535,7 @@ class Pipeline(object):
     def timeseries_data(self):
         return self.__timeseries_data
 
-    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=True):
+    def run(self, predictors_to_run, emergence, normalized=False, train_test=False, ss_only=False):
         if emergence == 'emergent':
             terms = self.__emergent
         elif emergence == 'stationary':
