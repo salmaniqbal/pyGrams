@@ -24,6 +24,27 @@ from scripts.vandv.emergence_labels import map_prediction_to_emergence_label, re
 from scripts.vandv.predictor import evaluate_prediction
 from scripts.vandv.predictor_reporting import report_prediction_as_graphs_html
 
+# NOTE: default arguments for pipeline
+    # pipeline = Pipeline(
+    #     'data/USPTO-random-1000.pkl.bz2',
+    #     {'filter_by': 'intersection', 'cpc': None, 'cite': None, 'columns': None, 'date': None, 'timeseries_date': None, 'date_header': None},
+    #     pick_method='sum',
+    #     ngram_range=(1, 3),
+    #     text_header='abstract',
+    #     cached_folder_name=None,
+    #     max_df=0.05,
+    #     user_ngrams=[],
+    #     prefilter_terms=100000,
+    #     terms_threshold=0.75,
+    #     output_name='out',
+    #     calculate_timeseries=False,
+    #     m_steps_ahead=5,
+    #     emergence_index='porter',
+    #     exponential=False,
+    #     nterms=25,
+    #     patents_per_quarter_threshold=15,
+    #     sma='savgol'
+    # )
 
 class Pipeline(object):
     def __init__(self, data_filename, docs_mask_dict, pick_method='sum', ngram_range=(1, 3), text_header='abstract',
@@ -31,17 +52,25 @@ class Pipeline(object):
                  terms_threshold=None, output_name=None, calculate_timeseries=None, m_steps_ahead=5,
                  emergence_index='porter', exponential=False, nterms=50, patents_per_quarter_threshold=20, sma=None):
 
+        # porter
         self.__emergence_index = emergence_index
 
         # load data
+        # 'data/USPTO-random-1000.pkl.bz2',
         self.__data_filename = data_filename
+        # None
         self.__date_dict = docs_mask_dict['date']
+        # None
         self.__timeseries_date_dict = docs_mask_dict['timeseries_date']
+        # []
         self.__timeseries_data = []
+        # None
         self.__timeseries_outputs=None
-
+        # []
         self.__emergence_list = []
+        # 'sum'
         self.__pick_method = pick_method
+
         # calculate or fetch tf-idf mat
         if cached_folder_name is None:
             dataframe = data_factory.get(data_filename)
