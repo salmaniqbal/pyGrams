@@ -1,11 +1,5 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: [ 'build', '-t', 'eu.gcr.io/$PROJECT_ID/pygrams:latest', '.' ]
-# This step pushes the image to Container Registry
-# The PROJECT_ID and SHORT_SHA variables are automatically
-# replaced by Cloud Build.
-- name: 'gcr.io/cloud-builders/docker'
-  id: Push to docker
-  args:
-  - 'push'
-  - 'eu.gcr.io/$PROJECT_ID/pygrams:latest'
+  args: [ 'build', '-t', 'gcr.io/$PROJECT_ID/pygrams', '.' ]
+images:
+- 'gcr.io/$PROJECT_ID/pygrams'
